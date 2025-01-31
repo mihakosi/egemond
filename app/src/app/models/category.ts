@@ -5,4 +5,5 @@ export class Category {
   icon: string;
   image: string;
   title: string;
+  type?: "income" | "expense";
 }

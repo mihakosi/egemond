@@ -1,7 +1,7 @@
 {
   "name": "Egemond",
   "short_name": "Egemond",
-  "start_url": "/",
+  "start_url": "/activities",
   "display": "standalone",
   "theme_color": "#246bc2",
   "background_color": "#fff",

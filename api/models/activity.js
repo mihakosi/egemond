@@ -10,6 +10,17 @@ const activitySchema = new mongoose.Schema({
     required: true,
     ref: "Category",
   },
+  subcategories: [{
+    category: {
+      type: String,
+      required: true,
+      ref: "Category",
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+  }],
   currency: {
     type: String,
     required: true,

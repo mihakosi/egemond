@@ -12,6 +12,8 @@
 
 Egemond is a free and open-source app that helps you manage your personal finances.
 - **Save your financial activity**: Quickly add your incomes and expenses and categorize and tag them.
+- **Analyze receipts**: Egemond can analyze your receipts and automatically fill the title, amount, and date of the activity. It even recognizes every item you've purchased and categorizes it.
+- **Split activity**: If a certain transaction consists of items from different categories, you can split the amount of the activity between multiple categories.
 - **Keep track of your spending and earning**: With Egemond, you can monitor your spending and earning by time or category.
 - **Easy to use**: Egemond is designed to be intuitive for any user, regardless of their technical experience.
 
@@ -41,6 +43,16 @@ MASTER_PASSWORD="{Master password}"
 - `MASTER_PASSWORD`: A password that must be entered when signing up (required if signing up is enabled)
 - `MASTER_PASSWORD`: A password that must be entered when signing up (required if signing up is enabled)
 - `TOTP_ALGORITHM`: Hashing algorithm for two-factor authentication (optional, default is SHA1)
+
+#### AI features
+To use the AI features, you will additionally also need the following:
+
+- **Receipt analysis**: an Azure AI Document Intelligence API key
+- **Item categorization**: an Open AI API key
+
+Instructions on how to obtain and use these API keys can be found in the documentation.
+
+Please note that although Egemond itself is open-source, AI features rely on third-party resources that are not free of charge.
 
 ### Run
 You can start Egemond by running

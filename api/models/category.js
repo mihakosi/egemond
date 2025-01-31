@@ -14,6 +14,10 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  type: {
+    type: String,
+    enum: ["income", "expense"],
+  },
   color: {
     type: String,
     required: true,

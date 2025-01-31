@@ -4,6 +4,7 @@
     "start": "node app.js"
   },
   "dependencies": {
+    "axios": "^1.7.9",
     "base32": "^0.0.7",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
@@ -15,6 +16,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^6.12.3",
     "morgan": "~1.10.0",
+    "openai": "^4.80.0",
     "otpauth": "^9.2.0"
   }
 }

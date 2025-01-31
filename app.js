@@ -1,10 +1,12 @@
-var express = require("express");
-var path = require("path");
+const express = require("express");
+const path = require("path");
 require("dotenv").config();
 
-var app = express();
+const app = express();
 
-app.use(express.json());
+app.use(express.json({
+  limit: '20mb',
+}));
 app.use(express.urlencoded({
   extended: false
 }));
@@ -37,7 +39,7 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
-var api = require("./api/routes/index");
+const api = require("./api/routes/index");
 app.use("/api", api);
 
 app.get("*", (req, res, next) => {
@@ -45,12 +47,12 @@ app.get("*", (req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  if (err.status == 401) {
+  if (err.status === 401) {
     return res.status(401).json({
       message: "You are not signed in.",
     });
   }
-  else if (err.status == 404) {
+  else if (err.status === 404) {
     return res.status(404).json({
       message: "This resource doesn't exist.",
     });
@@ -63,6 +65,6 @@ app.use((err, req, res, next) => {
 });
 
 let server = app.listen(process.env.PORT || 3000, () => {
-  var port = server.address().port;
+  const port = server.address().port;
   console.log(`Listening on port ${port}`);
 });

@@ -50,38 +50,100 @@
                     </div>
                   </li>
                   @for (activity of day.activities; track activity) {
-                    <li class="list-group-item" routerLink="/activity/{{ activity._id }}">
-                      <div class="row">
-                        <div class="col-auto">
-                          <div
-                            class="circle d-flex align-items-center justify-content-center bg-{{ activity.category.colorName }}">
-                            <i
-                              class="{{ activity.category.icon }} list-group-icon text-{{ activity.category.colorName }}"></i>
+                    @if (activity.category._id === "split") {
+                      <li class="list-group-item p-0" routerLink="/activity/{{ activity._id }}">
+                        <div class="row px-3 py-2">
+                          <div class="col-auto">
+                            <div
+                              class="circle d-flex align-items-center justify-content-center bg-{{ activity.category.colorName }}">
+                              <i
+                                class="{{ activity.category.icon }} list-group-icon text-{{ activity.category.colorName }}"></i>
+                            </div>
+                          </div>
+                          <div class="col text-start overflow-hidden">
+                            <h6 class="overflow-hidden text-nowrap text-truncate mb-0">{{ activity.title }}</h6>
+                            <div class="d-flex flex-wrap text-secondary small line-height-title mt-1">
+                              {{ activity.category.title | localize }}
+                            </div>
+                            @if (activity.tags.length > 0) {
+                              <div class="d-flex flex-wrap small line-height-title mt-1">
+                                @for (tag of activity.tags; track tag) {
+                                  <div class="badge bg-light text-dark fw-normal p-1 me-1">
+                                    #{{ tag }}
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
+                          <div class="col-auto text-end">
+                            <h6 class="mb-0"
+                                [ngClass]="{ 'text-secondary': activity.isExcluded, 'text-success': !activity.isExcluded && activity.amount > 0, 'text-danger': !activity.isExcluded && activity.amount < 0 }">
+                              {{ activity.amount | currency : activity.currency._id : "symbol-narrow" : "1.2-2" }}
+                            </h6>
                           </div>
                         </div>
-                        <div class="col text-start overflow-hidden">
-                          <h6 class="overflow-hidden text-nowrap text-truncate mb-0">{{ activity.title }}</h6>
-                          <div class="d-flex flex-wrap text-secondary small line-height-title mt-1">
-                            {{ activity.category.title | localize }}
-                          </div>
-                          @if (activity.tags.length > 0) {
-                            <div class="d-flex flex-wrap small line-height-title mt-1">
-                              @for (tag of activity.tags; track tag) {
-                                <div class="badge bg-light text-dark fw-normal p-1 me-1">
-                                  #{{ tag }}
+
+                        <div class="list-group list-group-subsections ps-3">
+                          @for (category of activity.subcategories; track category) {
+                            <div class="list-group-item list-group-item-split border-start-0 border-end-0 rounded-top-0 rounded-bottom-start-0 ps-1 pe-2">
+                              <div class="row align-items-center px-2">
+                                <div class="col-auto">
+                                  <div
+                                    class="circle-sm d-flex align-items-center justify-content-center bg-{{ category.category.colorName }}">
+                                    <i
+                                      class="{{ category.category.icon }} list-group-icon-sm text-{{ category.category.colorName }}"></i>
+                                  </div>
                                 </div>
-                              }
+                                <div class="col text-start overflow-hidden">
+                                  <div class="d-flex flex-wrap text-secondary small line-height-title">
+                                    {{ category.category.title | localize }}
+                                  </div>
+                                </div>
+                                <div class="col-auto text-end">
+                                  <div class="small mb-0"
+                                      [ngClass]="{ 'text-secondary': activity.isExcluded, 'text-success': !activity.isExcluded && category.amount > 0, 'text-danger': !activity.isExcluded && category.amount < 0 }">
+                                    {{ category.amount | currency : activity.currency._id : "symbol-narrow" : "1.2-2" }}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           }
                         </div>
-                        <div class="col-auto text-end">
-                          <h6 class="mb-0"
-                              [ngClass]="{ 'text-secondary': activity.isExcluded, 'text-success': !activity.isExcluded && activity.amount > 0, 'text-danger': !activity.isExcluded && activity.amount < 0 }">
-                            {{ activity.amount | currency : activity.currency._id : "symbol-narrow" : "1.2-2" }}
-                          </h6>
+                      </li>
+                    } @else {
+                      <li class="list-group-item" routerLink="/activity/{{ activity._id }}">
+                        <div class="row">
+                          <div class="col-auto">
+                            <div
+                              class="circle d-flex align-items-center justify-content-center bg-{{ activity.category.colorName }}">
+                              <i
+                                class="{{ activity.category.icon }} list-group-icon text-{{ activity.category.colorName }}"></i>
+                            </div>
+                          </div>
+                          <div class="col text-start overflow-hidden">
+                            <h6 class="overflow-hidden text-nowrap text-truncate mb-0">{{ activity.title }}</h6>
+                            <div class="d-flex flex-wrap text-secondary small line-height-title mt-1">
+                              {{ activity.category.title | localize }}
+                            </div>
+                            @if (activity.tags.length > 0) {
+                              <div class="d-flex flex-wrap small line-height-title mt-1">
+                                @for (tag of activity.tags; track tag) {
+                                  <div class="badge bg-light text-dark fw-normal p-1 me-1">
+                                    #{{ tag }}
+                                  </div>
+                                }
+                              </div>
+                            }
+                          </div>
+                          <div class="col-auto text-end">
+                            <h6 class="mb-0"
+                                [ngClass]="{ 'text-secondary': activity.isExcluded, 'text-success': !activity.isExcluded && activity.amount > 0, 'text-danger': !activity.isExcluded && activity.amount < 0 }">
+                              {{ activity.amount | currency : activity.currency._id : "symbol-narrow" : "1.2-2" }}
+                            </h6>
+                          </div>
                         </div>
-                      </div>
-                    </li>
+                      </li>
+                    }
                   }
                 }
               </ul>
@@ -90,8 +152,7 @@
         }
       }
     }
-  }
-  @else {
+  } @else {
     <div class="text-secondary text-center">
       <div class="my-3">
         <i class="fas fa-receipt fa-5x"></i>

@@ -1,24 +1,24 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from "@angular/core";
-import { FormGroup } from "@angular/forms";
-
-import { AppService } from "../../services/app.service";
-import { CategoriesService } from "../../services/categories.service";
-import { CurrenciesService } from "../../services/currencies.service";
+import { Component, Input, Output, EventEmitter, OnChanges } from "@angular/core";
+import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
 
 import { Category } from "../../models/category";
 import { Currency } from "../../models/currency";
 
-import { LocalizePipe } from "../../pipes/localize.pipe";
+import { Subcategory } from "../../models/activity";
 
 @Component({
   selector: "app-activity-form",
   templateUrl: "./activity-form.component.html",
   styleUrls: ["./activity-form.component.css"]
 })
-export class ActivityFormComponent implements OnInit, OnChanges {
-  constructor(private appService: AppService, private categoriesService: CategoriesService, private currenciesService: CurrenciesService, private localizePipe: LocalizePipe) {
+export class ActivityFormComponent implements OnChanges {
+  constructor(private route: ActivatedRoute) {
+    this.categories = this.route.snapshot.data.categories;
+    this.currency = this.route.snapshot.data.currency;
+
     let today = new Date();
-    for (var i = 2000; i <= today.getFullYear(); i++) {
+    for (let i = 2000; i <= today.getFullYear(); i++) {
       this.years.push(i.toString());
     }
   }
@@ -29,6 +29,8 @@ export class ActivityFormComponent implements OnInit, OnChanges {
   public currency: Currency;
   public years: string[] = [];
 
+  public subcategories: any[];
+
   @Input() public alert: {
     variant: string,
     message: string,
@@ -36,68 +38,73 @@ export class ActivityFormComponent implements OnInit, OnChanges {
 
   public saving = false;
 
-  public retrievalError: string;
-
-  @Output() loaded = new EventEmitter<void>();
   @Output() saveActivity = new EventEmitter<any>();
 
+  private formBuilder = new FormBuilder();
+
   public switch(type: "income" | "expense"): void {
+    this.subcategoriesFormArray.clear();
+    this.categories.forEach(category => {
+      if (category.type === type) {
+        this.subcategoriesFormArray.push(this.formBuilder.group({
+          category: [category._id, Validators.required],
+          amount: [<number>0.0, Validators.required],
+        }));
+      }
+    });
+
     this.activity.patchValue({
       type: type,
     });
+  }
 
-    if ((this.activity.value.type === "expense" && this.activity.value.amount > 0) || (this.activity.value.type === "income" && this.activity.value.amount < 0)) {
-      this.activity.patchValue({
-        amount: -this.activity.value.amount,
-      });
+  public get subcategoriesAmountValid(): boolean {
+    const activityAmount = this.activity.value.amount ?? 0;
+
+    if (this.subcategoriesFormArray.length > 0) {
+      return Math.round(this.subcategoriesFormArray.value.reduce((currentSum: number, item: any) => {
+        return currentSum + item.amount;
+      }, 0) * 100) === Math.round(activityAmount * 100);
+    } else {
+      return 0 === activityAmount;
     }
   }
 
-  private getCategories() {
-    this.categoriesService.getCategories().subscribe({
-      next: ((categories) => {
-        this.categories = categories.sort((x, y) => {
-          let titleX = this.localizePipe.transform(x.title);
-          let titleY = this.localizePipe.transform(y.title);
+  public splitIntoSubcategories: boolean = false;
 
-          if (titleX < titleY) {
-            return -1;
-          } else if (titleX > titleY) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-      }),
-      error: ((error) => {
-        this.retrievalError = this.appService.getErrorMessage(error);
-      }),
-    }).add(() => {
-      this.isLoaded();
-    });
+  public splitActivity(value: boolean): void {
+    if (value) {
+      this.splitIntoSubcategories = true;
+      this.activity.controls.category.patchValue("split");
+
+      this.subcategoriesFormArray.clear();
+      this.categories.forEach(category => {
+        if (category.type === this.activity.value.type) {
+          this.subcategoriesFormArray.push(this.formBuilder.group({
+            category: [category._id, Validators.required],
+            amount: [<number>0.0, Validators.required],
+          }));
+        }
+      });
+    } else {
+      this.splitIntoSubcategories = false;
+      this.activity.controls.category.patchValue(null);
+
+      this.subcategoriesFormArray.clear();
+    }
   }
 
-  private getCurrency() {
-    let currencyId = this.appService.getCurrency();
-    this.currenciesService.getCurrency(currencyId).subscribe({
-      next: ((currency) => {
-        this.currency = currency;
-      }),
-      error: ((error) => {
-        this.retrievalError = this.appService.getErrorMessage(error);
-      }),
-    }).add(() => {
-      this.isLoaded();
-    });
+  get subcategoriesFormArray() {
+    return this.activity.get('subcategories') as FormArray;
+  }
+
+  public findCategory(id: string): Category {
+    return this.categories.find((category: any) => category._id === id);
   }
 
   public formatAmount() {
     if (this.activity.value.amount) {
-      let amount = this.activity.value.amount.toString().replace(/[^\d.-]/g, "");
-
-      if (this.activity.value.type === "expense" && amount.charAt(0) != "-") {
-        amount = `-${amount}`;
-      }
+      let amount = this.activity.value.amount.toString().replace(/[^\d.]/g, "");
 
       this.activity.patchValue({
         amount: parseFloat(amount),
@@ -119,7 +126,7 @@ export class ActivityFormComponent implements OnInit, OnChanges {
   }
 
   public validate(): void {
-    if (this.activity.invalid) {
+    if (this.activity.invalid || (this.activity.value.category === "split" && !this.subcategoriesAmountValid)) {
       this.activity.markAllAsTouched();
       return;
     }
@@ -130,14 +137,24 @@ export class ActivityFormComponent implements OnInit, OnChanges {
 
     let tags = formattedTags.length > 0 ? formattedTags.split(" ") : [];
 
+    const subcategories = this.subcategoriesFormArray.value
+      .filter((subcategory: Subcategory) => subcategory.amount > 0)
+      .map((subcategory: Subcategory) => {
+        return {
+          category: subcategory.category,
+          amount: this.activity.value.type === "expense" ? -subcategory.amount : subcategory.amount,
+        };
+      });
+
     this.saving = true;
 
     this.saveActivity.emit({
       title: this.activity.value.title,
       category: this.activity.value.category,
       currency: this.currency._id,
-      amount: this.activity.value.amount,
+      amount: this.activity.value.type === "expense" ? -this.activity.value.amount : this.activity.value.amount,
       date: `${this.activity.value.year}-${this.activity.value.month}-${this.activity.value.day}`,
+      subcategories: subcategories,
       tags: tags,
       description: this.activity.value.description,
       isExcluded: this.activity.value.isExcluded,
@@ -146,20 +163,15 @@ export class ActivityFormComponent implements OnInit, OnChanges {
     return;
   }
 
-  private isLoaded(): void {
-    if (this.categories && this.currency) {
-      this.loaded.emit();
-    }
-  }
-
-  ngOnInit(): void {
-    this.getCategories();
-    this.getCurrency();
-  }
-
   ngOnChanges(): void {
+    this.saving = false;
+
     if (!this.activity.value.type) {
       this.activity.value.type = "expense";
+    }
+
+    if (this.subcategoriesFormArray) {
+      this.splitIntoSubcategories = this.subcategoriesFormArray.value.some((subcategory: Subcategory) => subcategory.amount > 0);
     }
 
     this.formatTags();

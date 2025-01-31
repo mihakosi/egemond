@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { Component, Input } from "@angular/core";
 import { Router } from "@angular/router";
 
 import { AuthenticationService } from "../../../services/authentication.service";
@@ -12,12 +12,12 @@ import { User } from "../../../models/user";
   styleUrls: ["./settings-two-factor-authentication.component.css"]
 })
 export class SettingsTwoFactorAuthenticationComponent {
-  constructor(public router: Router, private authenticationService: AuthenticationService, private appService: AppService) {}
-
-  @Input() public loading: boolean;
+  constructor(public router: Router,
+              private appService: AppService,
+              private authenticationService: AuthenticationService,
+  ) {}
 
   @Input() public user: User;
-  @Output() public update = new EventEmitter<any>;
 
   public setupStarted: boolean = false;
 
@@ -82,7 +82,7 @@ export class SettingsTwoFactorAuthenticationComponent {
     this.setupStarted = false;
     this.recoveryCodes = undefined;
 
-    this.update.emit();
+    this.user.twoFactorAuthentication.enabled = true;
   }
 
   public remove2FA() {
@@ -94,7 +94,7 @@ export class SettingsTwoFactorAuthenticationComponent {
           closeModalButton.click();
         }
 
-        this.update.emit();
+        this.user.twoFactorAuthentication.enabled = false;
       }),
       error: ((error) => {
         this.alert = {

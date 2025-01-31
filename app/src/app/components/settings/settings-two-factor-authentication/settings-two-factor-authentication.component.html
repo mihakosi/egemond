@@ -1,106 +1,101 @@
-@if (loading) {
-  <app-spinner></app-spinner>
+<h4>{{ "Two-factor authentication" | localize }}</h4>
+@if (alert && alert.message) {
+  <div class="alert alert-{{ alert.variant }}">
+    {{ alert.message | localize }}
+  </div>
 }
-@if (!loading) {
-  <h4>{{ "Two-factor authentication" | localize }}</h4>
-  @if (alert && alert.message) {
-    <div class="alert alert-{{ alert.variant }}">
-      {{ alert.message | localize }}
+@if (user.twoFactorAuthentication && user.twoFactorAuthentication.enabled) {
+  <div class="card">
+    <div class="card-header">
+      <h6 class="my-1">{{ "Two-factor authentication methods" | localize }}</h6>
     </div>
-  }
-  @if (user.twoFactorAuthentication && user.twoFactorAuthentication.enabled) {
-    <div class="card">
-      <div class="card-header">
-        <h6 class="my-1">{{ "Two-factor authentication methods" | localize }}</h6>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col">
-            <p class="m-0">{{ "Authenticator app" | localize }}</p>
-            <p
-              class="small text-secondary m-0">{{ "Use an authenticator app to get an authentication code when prompted." | localize }}</p>
-          </div>
-          <div class="col-auto">
-            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#remove2FA"
-                    [disabled]="saving">{{ "Remove" | localize }}
-            </button>
-          </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col">
+          <p class="m-0">{{ "Authenticator app" | localize }}</p>
+          <p
+            class="small text-secondary m-0">{{ "Use an authenticator app to get an authentication code when prompted." | localize }}</p>
+        </div>
+        <div class="col-auto">
+          <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#remove2FA"
+                  [disabled]="saving">{{ "Remove" | localize }}
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="modal fade" id="remove2FA" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5">{{ "Deactivate two-factor authentication" | localize }}</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p class="mb-0">{{ "Are you sure you want to disable two-factor authentication?" | localize }}</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-neutral" data-bs-dismiss="modal">{{ "Cancel" | localize }}</button>
-            <button-spinner [variant]="'danger'" [label]="'Deactivate' | localize" [loading]="saving"
-                            (click)="remove2FA()"></button-spinner>
-          </div>
+  <div class="modal fade" id="remove2FA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">{{ "Deactivate two-factor authentication" | localize }}</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">{{ "Are you sure you want to disable two-factor authentication?" | localize }}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-neutral" data-bs-dismiss="modal">{{ "Cancel" | localize }}</button>
+          <button-spinner [variant]="'danger'" [label]="'Deactivate' | localize" [loading]="saving"
+                          (click)="remove2FA()"></button-spinner>
         </div>
       </div>
     </div>
-  }
-  @if (!user.twoFactorAuthentication || !user.twoFactorAuthentication.enabled) {
-    <div class="card">
-      <div class="card-body">
-        @if (!setupStarted) {
-          <p>{{ "Improve the security of your account by configuring two-factor authentication. In addition to your email and password, you will also need to enter an authentication code provided by an authenticator app when signing in." | localize }}</p>
-          <div class="text-end">
-            <button-spinner [variant]="'primary'" [label]="'Configure' | localize" [loading]="saving"
-                            (click)="configure2FA()"></button-spinner>
-          </div>
+  </div>
+}
+@if (!user.twoFactorAuthentication || !user.twoFactorAuthentication.enabled) {
+  <div class="card">
+    <div class="card-body">
+      @if (!setupStarted) {
+        <p>{{ "Improve the security of your account by configuring two-factor authentication. In addition to your email and password, you will also need to enter an authentication code provided by an authenticator app when signing in." | localize }}</p>
+        <div class="text-end">
+          <button-spinner [variant]="'primary'" [label]="'Configure' | localize" [loading]="saving"
+                          (click)="configure2FA()"></button-spinner>
+        </div>
+      }
+      @if (setupStarted && !recoveryCodes) {
+        <h6>{{ "Scan QR code" | localize }}</h6>
+        <p>{{ "Use an authenticator app to scan the QR code." | localize }}</p>
+        <div class="mb-2">
+          <qrcode [qrdata]="url" [width]="200" [margin]="4" [errorCorrectionLevel]="'M'" [elementType]="'img'"
+                  [cssClass]="'d-inline-block rounded overflow-hidden'"></qrcode>
+        </div>
+        <div class="mb-4">
+          <p
+            class="mb-1">{{ "If you are unable to scan the QR code, you can also use the setup key to manually configure your authenticator app." | localize }}</p>
+          <span class="badge badge-code text-bg-light font-monospace">{{ secret }}</span>
+        </div>
+        <h6 class="mb-0">{{ "Verify the code from the app" | localize }}</h6>
+        <input [(ngModel)]="authenticationCode" type="text" class="form-control form-input form-input-otp"
+               maxlength="6" placeholder="XXXXXX" (input)="activate2FA()" id="authenticationCode"
+               name="authenticationCode" [disabled]="saving"/>
+        @if (!authenticationCode && submitted) {
+          <small class="form-text text-danger">
+            {{ "This field is required." | localize }}
+          </small>
         }
-        @if (setupStarted && !recoveryCodes) {
-          <h6>{{ "Scan QR code" | localize }}</h6>
-          <p>{{ "Use an authenticator app to scan the QR code." | localize }}</p>
-          <div class="mb-2">
-            <qrcode [qrdata]="url" [width]="200" [margin]="4" [errorCorrectionLevel]="'M'" [elementType]="'img'"
-                    [cssClass]="'d-inline-block rounded overflow-hidden'"></qrcode>
-          </div>
-          <div class="mb-4">
-            <p
-              class="mb-1">{{ "If you are unable to scan the QR code, you can also use the setup key to manually configure your authenticator app." | localize }}</p>
-            <span class="badge badge-code text-bg-light font-monospace">{{ secret }}</span>
-          </div>
-          <h6 class="mb-0">{{ "Verify the code from the app" | localize }}</h6>
-          <input [(ngModel)]="authenticationCode" type="text" class="form-control form-input form-input-otp"
-                 maxlength="6" placeholder="XXXXXX" (input)="activate2FA()" id="authenticationCode"
-                 name="authenticationCode" [disabled]="saving"/>
-          @if (!authenticationCode && submitted) {
-            <small class="form-text text-danger">
-              {{ "This field is required." | localize }}
-            </small>
+        @if ((authenticationCodeError || !authenticationCode) && submitted) {
+          <small class="form-text text-danger">
+            {{ (authenticationCodeError || "This field is required.") | localize }}
+          </small>
+        }
+      }
+      @if (setupStarted && recoveryCodes) {
+        <h6>{{ "Recovery codes" | localize }}</h6>
+        <p>{{ "Recovery codes can be used to access your account if you lose access to your authenticator app." | localize }}</p>
+        <p>{{ "Save them before you finish configuring two-factor authentication." | localize }}</p>
+        <div class="row mb-2">
+          @for (recoveryCode of recoveryCodes; track recoveryCode) {
+            <div class="col-md-6">
+              <p class="text-center font-monospace mb-0">{{ recoveryCode }}</p>
+            </div>
           }
-          @if ((authenticationCodeError || !authenticationCode) && submitted) {
-            <small class="form-text text-danger">
-              {{ (authenticationCodeError || "This field is required.") | localize }}
-            </small>
-          }
-        }
-        @if (setupStarted && recoveryCodes) {
-          <h6>{{ "Recovery codes" | localize }}</h6>
-          <p>{{ "Recovery codes can be used to access your account if you lose access to your authenticator app." | localize }}</p>
-          <p>{{ "Save them before you finish configuring two-factor authentication." | localize }}</p>
-          <div class="row mb-2">
-            @for (recoveryCode of recoveryCodes; track recoveryCode) {
-              <div class="col-md-6">
-                <p class="text-center font-monospace mb-0">{{ recoveryCode }}</p>
-              </div>
-            }
-          </div>
-          <div class="text-end">
-            <button class="btn btn-primary" (click)="finish2FA()">{{ "Finish" | localize }}</button>
-          </div>
-        }
-      </div>
+        </div>
+        <div class="text-end">
+          <button class="btn btn-primary" (click)="finish2FA()">{{ "Finish" | localize }}</button>
+        </div>
+      }
     </div>
-  }
+  </div>
 }

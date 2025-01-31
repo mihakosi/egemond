@@ -1,4 +1,4 @@
-import { Component, OnInit, LOCALE_ID } from "@angular/core";
+import { Component, LOCALE_ID, OnInit } from "@angular/core";
 import { CurrencyPipe } from "@angular/common";
 
 import { ActivitiesService } from "../../services/activities.service";
@@ -6,6 +6,7 @@ import { AppService } from "../../services/app.service";
 import { CategoriesService } from "../../services/categories.service";
 
 import * as echarts from "echarts";
+import { Activity } from "../../models/activity";
 
 @Component({
   selector: "app-statistics",
@@ -23,7 +24,8 @@ import * as echarts from "echarts";
   ],
 })
 export class StatisticsComponent implements OnInit {
-  constructor(private activitiesService: ActivitiesService, private appService: AppService, private categoriesService: CategoriesService, private currencyPipe: CurrencyPipe) {}
+  constructor(private activitiesService: ActivitiesService, private appService: AppService, private categoriesService: CategoriesService, private currencyPipe: CurrencyPipe) {
+  }
 
   public categories: any[];
 
@@ -125,6 +127,52 @@ export class StatisticsComponent implements OnInit {
     });
   }
 
+  private addActivityToExpenseCategory(categories: any, activity: Activity): void {
+    let category = categories.findIndex((category: any) => category._id === activity.category._id);
+    let date = new Date(activity.date);
+
+    if (!categories[category].expenses.dates.hasOwnProperty(date.getTime())) {
+      categories[category].expenses.dates[date.getTime()] = {
+        date: date,
+        activities: [],
+      };
+    }
+    categories[category].expenses.dates[date.getTime()].activities.push(activity);
+
+    categories[category].expenses.currency = activity.currency._id;
+    if (!activity.isExcluded) {
+      categories[category].expenses.total += activity.amount;
+    }
+
+    this.total.currency = activity.currency;
+    if (!activity.isExcluded) {
+      this.total.expenses += activity.amount;
+    }
+  }
+
+  private addActivityToIncomeCategory(categories: any, activity: Activity): void {
+    let category = categories.findIndex((category: any) => category._id === activity.category._id);
+    let date = new Date(activity.date);
+
+    if (!categories[category].incomes.dates.hasOwnProperty(date.getTime())) {
+      categories[category].incomes.dates[date.getTime()] = {
+        date: date,
+        activities: [],
+      };
+    }
+    categories[category].incomes.dates[date.getTime()].activities.push(activity);
+
+    categories[category].incomes.currency = activity.currency._id;
+    if (!activity.isExcluded) {
+      categories[category].incomes.total += activity.amount;
+    }
+
+    this.total.currency = activity.currency;
+    if (!activity.isExcluded) {
+      this.total.incomes += activity.amount;
+    }
+  }
+
   private getCategories(): void {
     this.categoriesService.getCategories().subscribe({
       next: ((categories: any) => {
@@ -144,43 +192,45 @@ export class StatisticsComponent implements OnInit {
         this.activitiesService.getActivities().subscribe({
           next: ((activities) => {
             activities.forEach(activity => {
-              let category = categories.findIndex(category => category._id === activity.category._id);
-              let date = new Date(activity.date);
               if (activity.amount < 0) {
-                if (!categories[category].expenses.dates.hasOwnProperty(date.getTime())) {
-                  categories[category].expenses.dates[date.getTime()] = {
-                    date: date,
-                    activities: [],
-                  };
-                }
-                categories[category].expenses.dates[date.getTime()].activities.push(activity);
-
-                categories[category].expenses.currency = activity.currency._id;
-                if (!activity.isExcluded) {
-                  categories[category].expenses.total += activity.amount;
-                }
-
-                this.total.currency = activity.currency;
-                if (!activity.isExcluded) {
-                  this.total.expenses += activity.amount;
+                if (activity.category._id === "split") {
+                  activity.subcategories.forEach(subcategory => {
+                    this.addActivityToExpenseCategory(categories, {
+                      _id: activity._id,
+                      amount: subcategory.amount,
+                      category: subcategory.category,
+                      currency: activity.currency,
+                      date: activity.date,
+                      description: activity.description,
+                      isExcluded: activity.isExcluded,
+                      tags: activity.tags,
+                      title: activity.title,
+                      user: activity.user,
+                      subcategories: [],
+                    });
+                  });
+                } else {
+                  this.addActivityToExpenseCategory(categories, activity);
                 }
               } else {
-                if (!categories[category].incomes.dates.hasOwnProperty(date.getTime())) {
-                  categories[category].incomes.dates[date.getTime()] = {
-                    date: date,
-                    activities: [],
-                  };
-                }
-                categories[category].incomes.dates[date.getTime()].activities.push(activity);
-
-                categories[category].incomes.currency = activity.currency._id;
-                if (!activity.isExcluded) {
-                  categories[category].incomes.total += activity.amount;
-                }
-
-                this.total.currency = activity.currency;
-                if (!activity.isExcluded) {
-                  this.total.incomes += activity.amount;
+                if (activity.category._id === "split") {
+                  activity.subcategories.forEach(subcategory => {
+                    this.addActivityToIncomeCategory(categories, {
+                      _id: activity._id,
+                      amount: subcategory.amount,
+                      category: subcategory.category,
+                      currency: activity.currency,
+                      date: activity.date,
+                      description: activity.description,
+                      isExcluded: activity.isExcluded,
+                      tags: activity.tags,
+                      title: activity.title,
+                      user: activity.user,
+                      subcategories: [],
+                    });
+                  });
+                } else {
+                  this.addActivityToIncomeCategory(categories, activity);
                 }
               }
             });
@@ -210,7 +260,7 @@ export class StatisticsComponent implements OnInit {
         });
       }),
       error: ((error) => {
-        this.retrievalError = error;
+        this.retrievalError = this.appService.getErrorMessage(error);
       }),
     });
   }

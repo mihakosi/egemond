@@ -1,15 +1,47 @@
-@if (!loading) {
-  <div class="mb-3">
-    <div class="row justify-content-end">
-      <div class="col text-start">
-        <h3>{{ "Add activity" | localize }}</h3>
-        <a routerLink="/activities">
-          <i class="fas fa-arrow-left me-2"></i>
-          <span>{{ "Back to Overview" | localize }}</span>
-        </a>
+<div class="mb-3">
+  <div class="row justify-content-end">
+    <div class="col text-start">
+      <h3>{{ "Add activity" | localize }}</h3>
+      <a routerLink="/activities">
+        <i class="fas fa-arrow-left me-2"></i>
+        <span>{{ "Back to Overview" | localize }}</span>
+      </a>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary btn-square" (click)="invoiceInput.click()">
+        <div class="position-absolute">
+          <i class="fas fa-expand"></i>
+        </div>
+        <span class="icon-xs">
+            <i class="fas fa-receipt"></i>
+          </span>
+      </button>
+      <div class="collapse">
+        <input #invoiceInput class="form-control" id="receiptInput" type="file" accept="image/*;capture=camera"
+               (change)="analyzeReceipt($event)">
       </div>
     </div>
   </div>
+</div>
+
+@if (!receiptItems) {
+  <app-activity-form [activity]="activity" [alert]="alert" (saveActivity)="createActivity($event)"></app-activity-form>
+} @else {
+  <app-activity-ai-form [activity]="activity" [alert]="alert" [(receiptItems)]="receiptItems"
+                        (saveActivity)="createActivity($event)"></app-activity-ai-form>
 }
-<app-activity-form [activity]="activity" [alert]="alert" (loaded)="onLoaded()"
-                   (saveActivity)="createActivity($event)"></app-activity-form>
+
+<div class="modal fade" id="analyzeReceiptModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <div class="d-flex justify-content-center mb-2">
+          <div class="spinner-border text-primary">
+            <span class="visually-hidden">{{ "Loading" | localize }} …</span>
+          </div>
+        </div>
+        <p class="mb-0">{{ "Analyzing receipt, please wait" | localize }} …</p>
+      </div>
+    </div>
+  </div>
+</div>

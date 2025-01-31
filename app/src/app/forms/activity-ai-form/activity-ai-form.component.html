@@ -131,95 +131,46 @@
         </div>
       </div>
 
-      @if (!splitIntoSubcategories) {
-        <div class="mb-3">
-          <label class="small text-secondary" for="category">
-            {{ "Category" | localize }}
+      <div class="mb-3">
+        <div>
+          <label class="small text-secondary">
+            <span>{{ "Receipt items" | localize }}</span>
           </label>
-          <div class="row">
-            <div class="col">
-              <select class="form-select form-input"
-                      [ngClass]="{ 'is-invalid': activity.controls.category.invalid && activity.controls.category.touched }"
-                      id="category" name="category" formControlName="category">
-                <option selected disabled></option>
-                @for (category of categories; track category) {
-                  @if (category.type === activity.controls.type.value) {
-                    <option value="{{ category._id }}">
-                      {{ category.title | localize }}
-                    </option>
-                  }
-                }
-              </select>
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-neutral" type="button" (click)="splitActivity(true)">
-                {{ "Split" | localize }}
-              </button>
-            </div>
-          </div>
-          @if (activity.controls.category.invalid && activity.controls.category.touched) {
-            <small class="form-text text-danger">
-              {{ "This field is required." | localize }}
-            </small>
-          }
-        </div>
-      }
-
-      @if (splitIntoSubcategories) {
-        <div class="mb-3">
-          <div class="row">
-            <div class="col">
-              <label class="small text-secondary" for="category">
-                {{ "Categories" | localize }}
-              </label>
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-sm btn-link" type="button" (click)="splitActivity(false)">
-                {{ "Back to basic view" | localize }}
-              </button>
-            </div>
-          </div>
-
-          <div class="row g-3" formArrayName="subcategories">
-            @for (categoryFormArray of subcategoriesFormArray.controls; let i = $index; track categoryFormArray) {
-              <ng-container *ngIf="findCategory(categoryFormArray.get('category').value) as category">
-                <div class="col-md-6 col-lg-4" [formGroupName]="i">
-                  <div class="card border">
-                    <div class="card-body p-3 p-md-2">
-                      <div class="row align-items-center g-2">
-                        <div class="col-auto">
-                          <div
-                            class="circle-sm d-flex align-items-center justify-content-center bg-{{ category.colorName }}">
-                            <i
-                              class="{{ category.icon }} list-group-icon-sm text-{{ category.colorName }}"></i>
-                          </div>
-                        </div>
-                        <div class="col text-start overflow-hidden">
-                          <div class="d-flex flex-wrap text-secondary small line-height-title">
-                            {{ category.title | localize }}
-                          </div>
-                        </div>
-                        <div class="col-md text-end">
-                          <div class="input-group input-group-sm">
-                            <input type="number" step="0.01" class="form-control form-input" formControlName="amount"/>
-                            <div class="input-group-text">{{ currency.symbol }}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+          <div class="rows-striped">
+            @for (item of receiptItems; let i = $index; track item) {
+              <div class="row align-items-center rounded my-1 p-1 g-1">
+                <div class="col small">{{ item.description }}</div>
+                <div class="col-md-3 col-lg-4">
+                  <div class="input-group input-group-sm ps-3 ps-md-0">
+                    <input type="number" step="0.01" class="form-control form-input"
+                           [(ngModel)]="receiptItems[i].total" [ngModelOptions]="{ standalone: true }"
+                           (input)="formatReceiptItemAmount(i)"/>
+                    <div class="input-group-text">{{ currency.symbol }}</div>
                   </div>
                 </div>
-              </ng-container>
-            }
-
-            @if (!subcategoriesAmountValid) {
-              <small class="form-text text-danger">
-                {{ "The sum of category amounts doesn't match the activity amount." | localize }}
-              </small>
+                <div class="col-md-3 col-lg-4">
+                  <div class="ps-3 ps-md-0">
+                    <select class="form-select form-select-sm form-input bg-transparent"
+                            [(ngModel)]="receiptItems[i].category" [ngModelOptions]="{ standalone: true }">
+                      @for (category of categories; track category) {
+                        <option value="{{ category._id }}">
+                          {{ category.title | localize }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </div>
             }
           </div>
         </div>
-      }
+
+        @if (!receiptItemsAmountValid) {
+          <small class="form-text text-danger">
+            {{ "The sum of receipt items doesn't match the activity amount." | localize }}
+          </small>
+        }
+      </div>
 
       <div class="mb-3">
         <label class="small text-secondary" for="tags">

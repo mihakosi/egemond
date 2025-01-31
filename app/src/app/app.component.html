@@ -35,7 +35,11 @@
   }
   <main class="py-3">
     <div class="container px-3">
-      <router-outlet></router-outlet>
+      @if (loading) {
+        <app-spinner></app-spinner>
+      } @else {
+        <router-outlet></router-outlet>
+      }
     </div>
   </main>
   @if (!isSignedIn()) {

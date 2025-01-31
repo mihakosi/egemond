@@ -1,9 +1,9 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 
-var jwt = require("express-jwt");
+const jwt = require("express-jwt");
 
-var authentication = jwt.expressjwt({
+const authentication = jwt.expressjwt({
   secret: process.env.JWT_SECRET,
   userProperty: "payload",
   algorithms: [
@@ -11,11 +11,16 @@ var authentication = jwt.expressjwt({
   ],
 });
 
-var activitiesController = require("../controllers/activities");
-var authenticationController = require("../controllers/authentication");
-var categoriesController = require("../controllers/categories");
-var currenciesController = require("../controllers/currencies");
-var usersController = require("../controllers/users");
+const aiController = require("../controllers/ai");
+
+const activitiesController = require("../controllers/activities");
+const authenticationController = require("../controllers/authentication");
+const categoriesController = require("../controllers/categories");
+const currenciesController = require("../controllers/currencies");
+const usersController = require("../controllers/users");
+
+/* AI */
+router.post("/ai/analyze-receipt", aiController.analyzeReceipt);
 
 /* Activities */
 router.get("/activities", authentication, activitiesController.getActivities);
@@ -47,7 +52,7 @@ router.put("/users/:userId", authentication, usersController.updateUser);
 router.delete("/users/:userId", authentication, usersController.deleteUser);
 
 router.use((req, res, next) => {
-  if (req.method != "OPTIONS" && !req.route) {
+  if (req.method !== "OPTIONS" && !req.route) {
     return res.status(404).json({
       message: "This resource doesn't exist.",
     });

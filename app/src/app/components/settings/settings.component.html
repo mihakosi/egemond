@@ -1,14 +1,4 @@
-@if (!retrievalError && (!user || !languages)) {
-  <app-spinner></app-spinner>
-}
-
-@if (retrievalError) {
-  <div class="text-secondary text-center">
-    <p class="my-3">{{ retrievalError | localize }}</p>
-  </div>
-}
-
-@if (user && languages) {
+@if (languages) {
   <div class="mb-3">
     <h3>{{ "Settings" | localize }}</h3>
   </div>
@@ -46,12 +36,12 @@
       <div class="tab-content" id="pills-tabContent">
 
         <div class="tab-pane fade show active" id="theme" role="tabpanel" aria-labelledby="themeTab" tabindex="0">
-          <app-settings-theme [(user)]="user"></app-settings-theme>
+          <app-settings-theme [user]="user"></app-settings-theme>
         </div>
 
         <div class="tab-pane fade" id="userAccount" role="tabpanel" aria-labelledby="userAccountTab" tabindex="1">
           <div class="mb-3">
-            <app-settings-update-account [(user)]="user"></app-settings-update-account>
+            <app-settings-update-account [user]="user"></app-settings-update-account>
           </div>
           <div class="mb-0">
             <app-settings-delete-account [user]="user"></app-settings-delete-account>
@@ -60,16 +50,15 @@
 
         <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="securityTab" tabindex="2">
           <div class="mb-3">
-            <app-settings-change-password [(user)]="user"></app-settings-change-password>
+            <app-settings-change-password [user]="user"></app-settings-change-password>
           </div>
           <div class="mb-0">
-            <app-settings-two-factor-authentication [user]="user" [loading]="loading"
-                                                    (update)="getUser()"></app-settings-two-factor-authentication>
+            <app-settings-two-factor-authentication [user]="user"></app-settings-two-factor-authentication>
           </div>
         </div>
 
         <div class="tab-pane fade" id="language" role="tabpanel" aria-labelledby="languageTab" tabindex="3">
-          <app-settings-language [(user)]="user" [languages]="languages"></app-settings-language>
+          <app-settings-language [user]="user" [languages]="languages"></app-settings-language>
         </div>
 
       </div>

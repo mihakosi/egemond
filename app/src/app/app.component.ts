@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router } from "@angular/router";
 
 import { Collapse } from "bootstrap";
 
@@ -11,9 +11,23 @@ import { AppService } from "./services/app.service";
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  constructor(public router: Router, private appService: AppService) {}
+  constructor(public router: Router,
+              private appService: AppService,
+  ) {
+    router.events.subscribe((routerEvent) => {
+      if (routerEvent instanceof NavigationStart) {
+        this.loading = true;
+      }
+
+      if (routerEvent instanceof NavigationEnd || routerEvent instanceof NavigationCancel || routerEvent instanceof NavigationError) {
+        this.loading = false;
+      }
+    });
+  }
 
   private navigation: any;
+
+  public loading: boolean = true;
 
   public isSignedIn() {
     return this.appService.getCurrentUser() != null;
@@ -33,8 +47,7 @@ export class AppComponent implements OnInit {
 
     if (e.target.tagName.toLowerCase() == "a") {
       this.navigation.hide();
-    }
-    else if (e.currentTarget.classList.contains("navbar-toggler")) {
+    } else if (e.currentTarget.classList.contains("navbar-toggler")) {
       this.navigation.toggle();
     }
   }

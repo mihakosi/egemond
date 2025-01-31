@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { Component, Input } from "@angular/core";
 
 import { User } from "../../../models/user";
 import { Language } from "../../../models/language";
@@ -29,12 +29,8 @@ export class SettingsLanguageComponent {
 
     this.user.language = language;
 
-    for (var i = 0; i < this.languages.length; i++) {
-      if (this.languages[i]._id == this.user.language) {
-        this.languages[i]["active"] = true;
-      } else {
-        this.languages[i]["active"] = false;
-      }
+    for (let i = 0; i < this.languages.length; i++) {
+      this.languages[i]["active"] = this.languages[i]._id == this.user.language;
     }
 
     this.updateUser();

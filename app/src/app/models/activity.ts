@@ -12,4 +12,10 @@ export class Activity {
   tags: string[];
   title: string;
   user: string;
+  subcategories: Subcategory[];
+}
+
+export class Subcategory {
+  category: Category;
+  amount: number;
 }

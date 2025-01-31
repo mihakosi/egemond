@@ -12,7 +12,10 @@ import { environment } from "../../environments/environment";
   providedIn: "root"
 })
 export class ActivitiesService {
-  constructor(private http: HttpClient, private appService: AppService) {}
+  constructor(private http: HttpClient,
+              private appService: AppService,
+  ) {
+  }
 
   private apiUrl = `${environment.apiUrl}/api`;
 
@@ -80,5 +83,16 @@ export class ActivitiesService {
     };
 
     return this.http.delete(url, httpProperties) as Observable<null>;
+  }
+
+  public analyzeInvoice(base64: any): Observable<any> {
+    const url: string = `${this.apiUrl}/ai/analyze-receipt`;
+    const httpProperties = {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${this.appService.getToken()}`
+      })
+    };
+
+    return this.http.post(url, base64, httpProperties) as Observable<null>;
   }
 }
